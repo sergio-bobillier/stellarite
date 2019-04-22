@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+require 'colorize'
+require 'zip'
+require 'pry'
+
+require_relative 'parser'
+
+def print_usage
+  program_name = 'stellarite'.bold
+
+  puts 'NAME'.bold
+  puts "\t#{program_name} -- Stellaris savegame files parser"
+  puts
+  puts 'SYNOPSIS'.bold
+  puts "\t#{program_name} #{'file'.underline}"
+  puts
+  puts 'DESCRIPTION'.bold
+  puts "\tThis utility loads and parses Stellaris savegame files and starts a pry session that lets"
+  puts "\tyou interact with the data structure."
+end
+
+def cage(saved_data)
+  # You are now inside the pry session.
+  # You can access the saved game data structure through the saved_data variable
+  # When done type `exit` to leave pry. Have fun :)
+  binding.pry
+end
+
+unless ARGV.any?
+  print_usage
+  exit 1
+end
+
+file_name = ARGV.first
+
+begin
+  puts "Loading saved game..."
+  Zip::File.open(file_name) do |zip_file|
+    gamestate_file = zip_file.glob('gamestate').first
+    raise StandardError, 'gamestate file not found in zip file' unless gamestate_file
+
+    stream = gamestate_file.get_input_stream
+
+    puts "Parsing structure..."
+    struct = Parser.new(stream).parse
+    cage(struct)
+  end
+rescue StandardError => ex
+  puts puts 'FATAL:'.underline + " #{ex.message}"
+end
