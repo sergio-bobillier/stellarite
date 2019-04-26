@@ -43,9 +43,15 @@ begin
     stream = gamestate_file.get_input_stream
 
     puts "Parsing structure..."
+
+    start_time = Time.now
     struct = Parser.new(stream).parse
+    elapsed = Time.now - start_time
+
+    puts "Took: #{elapsed} seconds to parse."
+
     cage(struct)
   end
 rescue StandardError => ex
-  puts puts 'FATAL:'.underline + " #{ex.message}"
+  puts puts 'FATAL:'.colorize(:red).underline + " #{ex.message}".colorize(:red)
 end
